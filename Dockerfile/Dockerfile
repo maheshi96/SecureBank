@@ -24,7 +24,7 @@ WORKDIR /app
 RUN useradd --create-home --shell /bin/bash securebank
 
 # Copy the packaged JAR from the build stage
-COPY --from=build /app/target/SecureBank.jar app.jar
+COPY --from=build /app/target/SecureBank.jar.original app.jar
 
 # Change ownership to the non-root user
 RUN chown securebank:securebank /app/app.jar
