@@ -37,6 +37,7 @@
 
         <!-- Replace these values with your SonarQube project details -->
         <sonar.projectKey>maheshi96_SecureBank</sonar.projectKey>
+        <sonar.organization>maheshi96</sonar.organization>
         <sonar.projectName>SecureBank</sonar.projectName>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
 
