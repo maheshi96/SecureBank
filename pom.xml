@@ -17,8 +17,8 @@
     </parent>
 
     <!-- Project identification -->
-    <groupId>com.SecureBank</groupId>
-    <artifactId>SecureB/artifactId>
+    <groupId>com.securebank</groupId>
+    <artifactId>securebank</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
 
