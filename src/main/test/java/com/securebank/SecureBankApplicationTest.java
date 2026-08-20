@@ -1,13 +1,13 @@
-package main.test.java.com.securebank;
+package com.securebank;
 
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
-class SecureBankApplicationTest {
+@SpringBootTest
+class SecureBankApplicationTests {
 
     @Test
-    void mainApplicationClassShouldExist() {
-        assertNotNull(SecureBankApplication.class);
+    void contextLoads() {
+        // Verifies the Spring application context starts successfully
     }
 }
