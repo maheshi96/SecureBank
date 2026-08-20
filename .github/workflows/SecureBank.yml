@@ -287,78 +287,65 @@ jobs:
     needs: deploy-staging
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    environment: staging
-    env:
-      STAGING_URL: ${{ vars.STAGING_URL }}
-      ZAP_SCAN_MODE: ${{ inputs.zap_scan_mode || 'baseline' }}
-      ACTIVE_SCAN_AUTHORISATION: ${{ inputs.active_scan_authorisation }}
 
     steps:
-      - name: Validate authorised DAST target and scan mode
-        shell: bash
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Build SecureBank image for DAST
         run: |
-          set -euo pipefail
-          [[ "${STAGING_URL:-}" =~ ^https:// ]] || {
-            echo "::error::STAGING_URL must be a configured HTTPS staging URL. Never target production or a system you do not own."
-            exit 1
-          }
-          if [[ "$ZAP_SCAN_MODE" == "full" ]]; then
-            [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" ]] || {
-              echo "::error::A full active scan is permitted only from workflow_dispatch."
-              exit 1
-            }
-            [[ "$ACTIVE_SCAN_AUTHORISATION" == "I_HAVE_AUTHORISATION" ]] || {
-              echo "::error::Type I_HAVE_AUTHORISATION in the manual workflow input to confirm permission for an active scan."
-              exit 1
-            }
-          elif [[ "$ZAP_SCAN_MODE" != "baseline" ]]; then
-            echo "::error::ZAP_SCAN_MODE must be baseline or full."
-            exit 1
-          fi
+          docker build -t securebank:dast .
+
+      - name: Create DAST Docker network
+        run: |
+          docker network create securebank-dast
+
+      - name: Start SecureBank staging container
+        run: |
+          docker run -d \
+            --name securebank-staging \
+            --network securebank-dast \
+            securebank:dast
+
+      - name: Wait for SecureBank application
+        run: |
+          sleep 15
+          docker ps
+          docker logs securebank-staging
 
       - name: Create ZAP report directory
-        shell: bash
-        run: mkdir -p zap-reports
-
-      - name: Run ZAP baseline or authorised full scan
-        shell: bash
         run: |
-          set -euo pipefail
-          if [[ "$ZAP_SCAN_MODE" == "full" ]]; then
-            report_json="zap-full.json"
-            docker run --rm \
-              --volume "$GITHUB_WORKSPACE/zap-reports:/zap/wrk/:rw" \
-              ghcr.io/zaproxy/zaproxy:stable \
-              zap-full-scan.py \
-              -t "$STAGING_URL" \
-              -r zap-full.html \
-              -J "$report_json" \
-              -w zap-full.md \
-              -I
-          else
-            report_json="zap-baseline.json"
-            docker run --rm \
-              --volume "$GITHUB_WORKSPACE/zap-reports:/zap/wrk/:rw" \
-              ghcr.io/zaproxy/zaproxy:stable \
-              zap-baseline.py \
-              -t "$STAGING_URL" \
-              -r zap-baseline.html \
-              -J "$report_json" \
-              -w zap-baseline.md \
-              -I
-          fi
-          echo "ZAP_REPORT_JSON=$report_json" >> "$GITHUB_ENV"
+          mkdir -p zap-reports
+          chmod 777 zap-reports
+
+      - name: Run OWASP ZAP baseline scan
+        run: |
+          docker run --rm \
+            --network securebank-dast \
+            -v "$GITHUB_WORKSPACE/zap-reports:/zap/wrk/:rw" \
+            ghcr.io/zaproxy/zaproxy:stable \
+            zap-baseline.py \
+            -t http://securebank-staging:8080 \
+            -r zap-baseline.html \
+            -J zap-baseline.json \
+            -w zap-baseline.md \
+            -I
 
       - name: Enforce zero High-risk ZAP alerts
-        shell: bash
         run: |
-          set -euo pipefail
-          report="zap-reports/${ZAP_REPORT_JSON}"
-          [[ -s "$report" ]] || { echo "::error::ZAP JSON report was not created."; exit 1; }
+          report="zap-reports/zap-baseline.json"
+
+          if [[ ! -s "$report" ]]; then
+            echo "::error::ZAP JSON report was not created."
+            exit 1
+          fi
+
           high_count="$(jq '[.site[]?.alerts[]? | select((.riskcode | tonumber) >= 3)] | length' "$report")"
+
           echo "High-risk ZAP alerts: $high_count"
+
           if (( high_count > 0 )); then
-            echo "::error::$high_count High-risk ZAP alert(s) found. Production is blocked."
+            echo "::error::$high_count High-risk ZAP alert(s) found."
             exit 1
           fi
 
@@ -370,6 +357,11 @@ jobs:
           path: zap-reports/
           if-no-files-found: warn
           retention-days: 30
+
+
+
+
+
 
   # --------------------------------------------------------------------------
   # Gate 6: production. Configure required reviewers on the `production`
