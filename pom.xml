@@ -36,7 +36,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Replace these values with your SonarQube project details -->
-        <sonar.projectKey>SecureBank</sonar.projectKey>
+        <sonar.projectKey>maheshi96_SecureBank</sonar.projectKey>
         <sonar.projectName>SecureBank</sonar.projectName>
 
         <!-- JaCoCo XML report used by SonarQube -->
