@@ -148,13 +148,8 @@
                     <parameters>true</parameters>
                </configuration>
 
-                <configuration>
-                    <!-- Prevent integration tests running as unit tests -->
-                    <excludes>
-                        <exclude>**/*IT.java</exclude>
-                        <exclude>**/*IntegrationTest.java</exclude>
-                    </excludes>
-                </configuration>
+               
+
             </plugin>
 
             <!-- Runs integration tests during integration-test and verify -->
