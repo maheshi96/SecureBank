@@ -96,6 +96,37 @@ jobs:
         shell: bash
         run: mvn $MAVEN_CLI_ARGS clean verify
 
+      - name: Verify unit and integration test reports
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          unit_report="$(find . \
+            -type f \
+            -path '*/target/surefire-reports/TEST-*.xml' \
+            -print -quit)"
+
+          integration_report="$(find . \
+            -type f \
+            -path '*/target/failsafe-reports/TEST-*.xml' \
+            -print -quit)"
+
+          if [[ -z "$unit_report" ]]; then
+            echo "::error::No Surefire unit-test report was generated."
+            echo "::error::Add a test file ending with Test.java under src/test/java."
+            exit 1
+          fi
+
+          if [[ -z "$integration_report" ]]; then
+            echo "::error::No Failsafe integration-test report was generated."
+            echo "::error::Add a test file ending with IT.java under src/test/java."
+            exit 1
+          fi
+
+          echo "Unit-test report: $unit_report"
+          echo "Integration-test report: $integration_report"
+
       - name: Upload test evidence
         if: always()
         uses: actions/upload-artifact@v7

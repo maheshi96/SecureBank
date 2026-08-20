@@ -1,4 +1,4 @@
-package main.test.java.com.securebank;
+package com.securebank;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -7,7 +7,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 class SecureBankApplicationIT {
 
     @Test
-    void applicationContextLoads() {
-        // Test passes when the complete Spring application starts.
+    void applicationContextShouldLoad() {
+        // The test passes when the Spring application starts successfully.
     }
 }
