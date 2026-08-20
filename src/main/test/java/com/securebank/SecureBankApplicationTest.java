@@ -1,4 +1,4 @@
-package com.securebank;
+package main.test.java.com.securebank;
 
 import org.junit.jupiter.api.Test;
 
