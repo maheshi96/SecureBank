@@ -318,7 +318,7 @@ jobs:
       
         run: |
           set -euo pipefail
-          install -d -m 700 zap-reports
+          install -d -o 1000 -g 1000 -m 700 zap-reports
           
 
       - name: Run OWASP ZAP baseline scan
