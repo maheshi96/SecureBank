@@ -324,17 +324,10 @@ jobs:
       - name: Run OWASP ZAP baseline scan
         shell: bash
         run: |
-          docker run --rm \
+          docker run --rm --network securebank-dast -v "$GITHUB_WORKSPACE/zap-reports:/zap/wrk/:rw" ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://securebank-staging:8080 -r zap-baseline.html -J zap-baseline.json -w zap-baseline.md -I
+
             
-            --network securebank-dast \
-            -v "$GITHUB_WORKSPACE/zap-reports:/zap/wrk/:rw" \
-            ghcr.io/zaproxy/zaproxy:stable \
-            zap-baseline.py \
-            -t http://securebank-staging:8080 \
-            -r zap-baseline.html \
-            -J zap-baseline.json \
-            -w zap-baseline.md \
-            -I
+            
 
 
       - name: Restore ZAP report ownership
